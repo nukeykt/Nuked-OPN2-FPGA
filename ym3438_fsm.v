@@ -136,6 +136,6 @@ module ym3438_fsm
 	assign alg_cur1_o = alg_cur1;
 	assign alg_cur2_o = alg_cur2;
 	assign alg_op1_0_o = alg_op1_0;
-	assign alg_out_o = alg_out_o;
+	assign alg_out_o = alg_out;
 	
 endmodule

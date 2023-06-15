@@ -74,6 +74,24 @@ module ym3438(
 		.alg_op1_0_o(alg_op1_0),
 		.alg_out_o(alg_out)
 		);
+	
+	
+	ym3438_io io(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.address(ADDRESS),
+		.data(DATA_i),
+		.CS(CS),
+		.WR(WR),
+		.RD(RD),
+		.IC(IC),
+		.data_bus(),
+		.write_addr_en(),
+		.write_data_en(),
+		.io_IC()
+		);
+	
 
 	output d_c1;
 	output d_c2;

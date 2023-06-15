@@ -152,3 +152,75 @@ module ym3438_edge_detect
 		);
 	assign outp = ~(prev_out | ~inp);
 endmodule
+
+module ym3438_slatch
+	(
+	input MCLK,
+	input en,
+	input inp,
+	output val,
+	output nval
+	);
+	
+	reg mem = 0;
+	
+	always @(posedge MCLK)
+	begin
+		if (en)
+			mem <= inp;
+	end
+	
+	assign val = mem;
+	assign nval = ~mem;
+	
+endmodule
+
+module ym3438_rs_trig
+	(
+	input MCLK,
+	input set,
+	input rst,
+	output reg q = 0,
+	output reg nq = 1
+	);
+	
+	always @(posedge MCLK)
+	begin
+		if (rst)
+			q <= 0;
+		else if (set)
+			q <= 1;
+		if (set)
+			nq <= 0;
+		else if (rst)
+			nq <= 1;
+	end
+	
+endmodule
+
+module ym3438_rs_trig_sync
+	(
+	input MCLK,
+	input set,
+	input rst,
+	input c1,
+	output reg q = 0,
+	output reg nq = 1
+	);
+	
+	always @(posedge MCLK)
+	begin
+		if (c1)
+		begin
+			if (rst)
+				q <= 0;
+			else if (set)
+				q <= 1;
+			if (set)
+				nq <= 0;
+			else if (rst)
+				nq <= 1;
+		end
+	end
+	
+endmodule
