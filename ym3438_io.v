@@ -189,7 +189,7 @@ module ym3438_io
 		.en(c2),
 		.inp(timer_b),
 		.val(),
-		.nval(timer_a_status_sl_out)
+		.nval(timer_b_status_sl_out)
 		);
 	
 	bufif1(data_o[0], timer_b_status_sl_out, read_status);

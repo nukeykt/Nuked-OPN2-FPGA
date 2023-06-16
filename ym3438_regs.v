@@ -9,13 +9,15 @@ module ym3438_reg_ctrl
 	input write_data_en,
 	input IC,
 	input fsm_sel_23,
+	input fsm_sel_1,
+	input timer_ed,
+	input ch3_sel,
 	input [1:0] rate_sel,
 	output [3:0] multi,
 	output [2:0] dt,
 	output [6:0] tl,
 	output [1:0] ks,
 	output am,
-	output [3:0] rr,
 	output [3:0] sl,
 	output [3:0] ssgeg,
 	output [4:0] rate,
@@ -26,7 +28,18 @@ module ym3438_reg_ctrl
 	output [2:0] fb,
 	output [2:0] pms,
 	output [1:0] ams,
-	output [1:0] pan
+	output [1:0] pan,
+	output [7:0] reg_21,
+	output [3:0] lfo,
+	output [7:0] dac,
+	output dac_en,
+	output [7:3] reg_2c,
+	output kon,
+	output kon_csm,
+	output mode_csm,
+	output mode_ch3,
+	output timer_a_status,
+	output timer_b_status
 	);
 	
 	wire fm_addr_write = (data[7:4] != 0) & write_addr_en;
@@ -61,7 +74,7 @@ module ym3438_reg_ctrl
 	wire [8:0] fm_address_in;
 	wire [8:0] fm_address_out;
 	
-	assign fm_address_in = nIC ? 0 : (fm_addr_write ? { bank, data } : fm_address_out); 
+	assign fm_address_in = nIC ? 9'h000 : (fm_addr_write ? { bank, data } : fm_address_out); 
 	
 	ym3438_sr_bit_array #(.DATA_WIDTH(9)) fm_address
 		(
@@ -75,7 +88,7 @@ module ym3438_reg_ctrl
 	wire [7:0] fm_data_in;
 	wire [7:0] fm_data_out;
 	
-	assign fm_data_in = nIC ? 0 : (fm_data_write ? data : fm_data_out); 
+	assign fm_data_in = nIC ? 8'h00 : (fm_data_write ? data : fm_data_out); 
 	
 	ym3438_sr_bit_array #(.DATA_WIDTH(8)) fm_data
 		(
@@ -100,7 +113,7 @@ module ym3438_reg_ctrl
 		.MCLK(MCLK),
 		.c1(c1),
 		.c2(c2),
-		.c_in(1),
+		.c_in(1'h1),
 		.reset(reset_low_cnt),
 		.val(cnt_low_out),
 		.c_out()
@@ -178,6 +191,8 @@ module ym3438_reg_ctrl
 		.obank(reg_cnt[4]),
 		.data_o(tl)
 		);
+		
+	wire [4:0] ar;
 	
 	ym3438_op_register #(.DATA_WIDTH(5)) reg_ar
 		(
@@ -204,6 +219,8 @@ module ym3438_reg_ctrl
 		.obank(reg_cnt[4]),
 		.data_o(ks)
 		);
+		
+	wire [4:0] dr;
 	
 	ym3438_op_register #(.DATA_WIDTH(5)) reg_dr
 		(
@@ -230,6 +247,8 @@ module ym3438_reg_ctrl
 		.obank(reg_cnt[4]),
 		.data_o(am)
 		);
+		
+	wire [4:0] sr;
 	
 	ym3438_op_register #(.DATA_WIDTH(5)) reg_sr
 		(
@@ -243,6 +262,8 @@ module ym3438_reg_ctrl
 		.obank(reg_cnt[4]),
 		.data_o(sr)
 		);
+		
+	wire [3:0] rr;
 	
 	ym3438_op_register #(.DATA_WIDTH(4)) reg_rr
 		(
@@ -295,7 +316,7 @@ module ym3438_reg_ctrl
 		.data_out(reg_a4_out)
 		);
 	
-	assign reg_a4_in = nIC ? 0 : (ch_writeA4 ? fm_data_out[5:0] : reg_a4_out);
+	assign reg_a4_in = nIC ? 6'h00 : (ch_writeA4 ? fm_data_out[5:0] : reg_a4_out);
 		
 	wire [5:0] reg_ac_in;
 	wire [5:0] reg_ac_out;
@@ -309,7 +330,7 @@ module ym3438_reg_ctrl
 		.data_out(reg_ac_out)
 		);
 	
-	assign reg_ac_in = nIC ? 0 : (ch_writeAC ? fm_data_out[5:0] : reg_ac_out);
+	assign reg_ac_in = nIC ? 6'h00 : (ch_writeAC ? fm_data_out[5:0] : reg_ac_out);
 	
 	wire [10:0] reg_fnum_o;
 	
@@ -425,6 +446,573 @@ module ym3438_reg_ctrl
 		.rst(nIC),
 		.data_o_5(pan)
 		);
+		
+	wire reg_21_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h21)) reg_21_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_21_wr)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(8)) reg_21_data
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[7:0]),
+		.reg_wr(reg_21_wr),
+		.rst(nIC),
+		.data_o(reg_21)
+		);
+		
+	wire reg_22_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h22)) reg_22_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_22_wr)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(4)) reg_22_data
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[3:0]),
+		.reg_wr(reg_22_wr),
+		.rst(nIC),
+		.data_o(lfo)
+		);
+	
+	wire [9:0] reg_timer_a_o;
+		
+	wire reg_24_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h24)) reg_24_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_24_wr)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(8)) reg_24_data
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[7:0]),
+		.reg_wr(reg_24_wr),
+		.rst(nIC),
+		.data_o(reg_timer_a_o[7:0])
+		);
+		
+	wire reg_25_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h25)) reg_25_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_25_wr)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(2)) reg_25_data
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[1:0]),
+		.reg_wr(reg_25_wr),
+		.rst(nIC),
+		.data_o(reg_timer_a_o[9:8])
+		);
+	
+	wire [7:0] reg_timer_b_o;
+		
+	wire reg_26_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h26)) reg_26_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_26_wr)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(8)) reg_26_data
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[7:0]),
+		.reg_wr(reg_26_wr),
+		.rst(nIC),
+		.data_o(reg_timer_b_o)
+		);
+		
+	wire reg_27_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h27)) reg_27_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_27_wr)
+		);
+	
+	wire [3:0] reg_27_timer_ctrl_o;
+		
+	ym3438_reg_data #(.DATA_WIDTH(4)) reg_27_timer_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[3:0]),
+		.reg_wr(reg_27_wr),
+		.rst(nIC),
+		.data_o(reg_27_timer_ctrl_o)
+		);
+	
+	wire [1:0] reg_27_timer_reset_o;
+
+	ym3438_sr_bit_array #(.DATA_WIDTH(2)) reg_27_timer_reset
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(reg_27_wr ? data[5:4] : 2'h0),
+		.data_out(reg_27_timer_reset_o)
+		);
+	
+	wire [1:0] reg_27_mode_o;
+		
+	ym3438_reg_data #(.DATA_WIDTH(2)) reg_27_mode
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[7:6]),
+		.reg_wr(reg_27_wr),
+		.rst(nIC),
+		.data_o(reg_27_mode_o)
+		);
+		
+	wire reg_28_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h28)) reg_28_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_28_wr)
+		);
+	
+	wire [2:0] reg_28_ch_o;
+	wire [3:0] reg_28_slot_o;
+		
+	ym3438_reg_data #(.DATA_WIDTH(3)) reg_28_ch
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[2:0]),
+		.reg_wr(reg_28_wr),
+		.rst(nIC),
+		.data_o(reg_28_ch_o)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(4)) reg_28_slot
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[7:4]),
+		.reg_wr(reg_28_wr),
+		.rst(nIC),
+		.data_o(reg_28_slot_o)
+		);
+		
+	wire reg_2a_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h2a)) reg_2a_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_2a_wr)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(7)) reg_2a_dac
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[6:0]),
+		.reg_wr(reg_2a_wr),
+		.rst(nIC),
+		.data_o(dac[6:0])
+		);
+
+	
+	wire reg_dac_msb_in;
+	wire reg_dac_msb_out;
+
+	ym3438_sr_bit reg_dac_msb
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(reg_dac_msb_in),
+		.sr_out(reg_dac_msb_out)
+		);
+		
+	assign reg_dac_msb_in = nIC ? 1'h0 : (reg_2a_wr ? ~data[7] : reg_dac_msb_out);
+	assign dac[7] = ~reg_dac_msb_out;
+		
+	wire reg_2b_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h2b)) reg_2b_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_2b_wr)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(1)) reg_2b_dac_en
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[7]),
+		.reg_wr(reg_2b_wr),
+		.rst(nIC),
+		.data_o(dac_en)
+		);
+		
+	wire reg_2c_wr;
+	
+	ym3438_reg_wr_ctrl #(.REG_ADDRESS(8'h2c)) reg_2c_ctrl
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.reg_wr(reg_2c_wr)
+		);
+		
+	ym3438_reg_data #(.DATA_WIDTH(5)) reg_2c_data
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data[7:3]),
+		.reg_wr(reg_2c_wr),
+		.rst(nIC),
+		.data_o(reg_2c)
+		);
+	
+	wire kon_sr1_in;
+	wire kon_sr1_out;
+	
+	ym3438_sr_bit #(.SR_LENGTH(6)) kon_sr1
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(kon_sr1_in),
+		.sr_out(kon_sr1_out)
+		);
+	
+	wire kon_sr2_in;
+	wire kon_sr2_out;
+	
+	ym3438_sr_bit #(.SR_LENGTH(6)) kon_sr2
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(kon_sr2_in),
+		.sr_out(kon_sr2_out)
+		);
+	
+	wire kon_sr3_in;
+	wire kon_sr3_out;
+	
+	ym3438_sr_bit #(.SR_LENGTH(6)) kon_sr3
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(kon_sr3_in),
+		.sr_out(kon_sr3_out)
+		);
+	
+	wire kon_sr4_in;
+	wire kon_sr4_out;
+	
+	ym3438_sr_bit #(.SR_LENGTH(6)) kon_sr4
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(kon_sr4_in),
+		.sr_out(kon_sr4_out)
+		);
+	
+	wire kon_ch_match = ~nIC & (reg_cnt == { 2'h0, reg_28_ch_o });
+	
+	assign kon_sr1_in = kon_ch_match ? reg_28_slot_o[0] : (~nIC & kon_sr4_out);
+	assign kon_sr2_in = kon_ch_match ? reg_28_slot_o[3] : kon_sr1_out;
+	assign kon_sr3_in = kon_ch_match ? reg_28_slot_o[1] : kon_sr2_out;
+	assign kon_sr4_in = kon_ch_match ? reg_28_slot_o[2] : kon_sr3_out;
+	
+	assign kon = kon_sr4_out | kon_csm;
+	
+	assign mode_csm = reg_27_mode_o == 2'b10;
+	
+	assign mode_ch3 = reg_27_mode_o != 2'b00;
+	
+	wire timer_test = reg_21[2];
+	
+	wire timer_a_inc;
+	wire timer_a_load;
+	wire timer_a_load_cnt;
+	wire timer_a_cout;
+	wire timer_a_load_sr_o;
+	wire timer_a_of_sr_o;
+	wire timer_a_load_cnt_i;
+	
+	
+	ym3438_cnt_bit_load #(.DATA_WIDTH(10)) timer_a_cnt
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.c_in(timer_a_inc),
+		.reset(~timer_a_load),
+		.load(timer_a_load_cnt),
+		.load_val(reg_timer_a_o),
+		.val(),
+		.c_out(timer_a_cout)
+		);
+	
+	assign timer_a_inc = (timer_a_load & fsm_sel_1) | timer_test;
+	
+	ym3438_slatch timer_a_load_l
+		(
+		.MCLK(MCLK),
+		.en(timer_ed),
+		.inp(reg_27_timer_ctrl_o[0]),
+		.val(timer_a_load),
+		.nval()
+		);
+	
+	ym3438_sr_bit timer_a_load_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(timer_a_load),
+		.sr_out(timer_a_load_sr_o)
+		);
+	
+	ym3438_sr_bit timer_a_of_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(timer_a_cout),
+		.sr_out(timer_a_of_sr_o)
+		);
+		
+	assign timer_a_load_cnt_i = (~timer_a_load_sr_o & timer_a_load) | timer_a_of_sr_o;
+	
+	ym3438_sr_bit timer_a_load_cnt_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(timer_a_load_cnt_i),
+		.sr_out(timer_a_load_cnt)
+		);
+	
+	wire timer_a_status_reset = nIC | reg_27_timer_reset_o[0];
+	
+	wire timer_a_status_set = ~timer_a_status_reset & timer_a_of_sr_o & reg_27_timer_ctrl_o[2];
+	
+	wire timer_a_status_sr_o2;
+	wire timer_a_status_sr_o = ~timer_a_status_sr_o2;
+	assign timer_a_status = ~timer_a_status_sr_o;
+	
+	ym3438_sr_bit timer_a_status_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(~((timer_a_status_sr_o & timer_a_status_reset) | timer_a_status_set)),
+		.sr_out(timer_a_status_sr_o2)
+		);
+
+	
+	wire timer_b_inc;
+	wire timer_b_load;
+	wire timer_b_load_cnt;
+	wire timer_b_sub_cout;
+	wire timer_b_cout;
+	wire timer_b_load_sr_o;
+	wire timer_b_of_sr_o;
+	wire timer_b_load_cnt_i;
+	wire timer_b_subcnt_of_sr_o;
+	
+	ym3438_cnt_bit #(.DATA_WIDTH(4)) timer_b_subcnt
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.c_in(fsm_sel_1),
+		.reset(nIC),
+		.val(),
+		.c_out(timer_b_sub_cout)
+		);
+	
+	ym3438_sr_bit timer_b_subcnt_of_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(timer_b_sub_cout),
+		.sr_out(timer_b_subcnt_of_sr_o)
+		);
+	
+	
+	ym3438_cnt_bit_load #(.DATA_WIDTH(8)) timer_b_cnt
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.c_in(timer_b_inc),
+		.reset(~timer_b_load),
+		.load(timer_b_load_cnt),
+		.load_val(reg_timer_b_o),
+		.val(),
+		.c_out(timer_b_cout)
+		);
+	
+	assign timer_b_inc = (timer_b_load & timer_b_subcnt_of_sr_o) | timer_test;
+	
+	ym3438_slatch timer_b_load_l
+		(
+		.MCLK(MCLK),
+		.en(timer_ed),
+		.inp(reg_27_timer_ctrl_o[1]),
+		.val(timer_b_load),
+		.nval()
+		);
+	
+	ym3438_sr_bit timer_b_load_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(timer_b_load),
+		.sr_out(timer_b_load_sr_o)
+		);
+	
+	ym3438_sr_bit timer_b_of_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(timer_b_cout),
+		.sr_out(timer_b_of_sr_o)
+		);
+		
+	assign timer_b_load_cnt_i = (~timer_b_load_sr_o & timer_b_load) | timer_b_of_sr_o;
+	
+	ym3438_sr_bit timer_b_load_cnt_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(timer_b_load_cnt_i),
+		.sr_out(timer_b_load_cnt)
+		);
+	
+	wire timer_b_status_reset = nIC | reg_27_timer_reset_o[1];
+	
+	wire timer_b_status_set = ~timer_b_status_reset & timer_b_of_sr_o & reg_27_timer_ctrl_o[3];
+	
+	wire timer_b_status_sr_o2;
+	wire timer_b_status_sr_o = ~timer_b_status_sr_o2;
+	assign timer_b_status = ~timer_b_status_sr_o;
+	
+	ym3438_sr_bit timer_b_status_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(~((timer_b_status_sr_o & timer_b_status_reset) | timer_b_status_set)),
+		.sr_out(timer_b_status_sr_o2)
+		);
+	
+	wire kon_csm_o;
+	
+	ym3438_slatch kon_csm_l
+		(
+		.MCLK(MCLK),
+		.en(timer_ed),
+		.inp(mode_csm & timer_a_load_cnt_i),
+		.val(kon_csm_o),
+		.nval()
+		);
+		
+	assign kon_csm = kon_csm_o & ch3_sel;
 
 	
 endmodule
@@ -467,8 +1055,8 @@ module ym3438_op_register #(parameter DATA_WIDTH = 1)
 	wire write1 = write_en & ~bank;
 	wire write2 = write_en & bank;
 
-	assign sr1_in = rst ? 0 : (write1 ? data : sr1_out);
-	assign sr2_in = rst ? 0 : (write2 ? data : sr2_out);
+	assign sr1_in = rst ? {DATA_WIDTH{1'h0}} : (write1 ? data : sr1_out);
+	assign sr2_in = rst ? {DATA_WIDTH{1'h0}} : (write2 ? data : sr2_out);
 	
 	assign data_o = obank ? sr2_out : sr1_out;
 	
@@ -492,16 +1080,56 @@ module ym3438_ch_register #(parameter DATA_WIDTH = 1)
 	
 	wire [DATA_WIDTH-1:0] sr_in[0:5];
 	wire [DATA_WIDTH-1:0] sr_out[0:5];
-	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) sr_array[0:5]
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) sr_0
 		(
 		.MCLK(MCLK),
 		.c1(c1),
 		.c2(c2),
-		.data_in(sr_in),
-		.data_out(sr_out)
+		.data_in(sr_in[0]),
+		.data_out(sr_out[0])
+		);
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) sr_1
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(sr_in[1]),
+		.data_out(sr_out[1])
+		);
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) sr_2
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(sr_in[2]),
+		.data_out(sr_out[2])
+		);
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) sr_3
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(sr_in[3]),
+		.data_out(sr_out[3])
+		);
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) sr_4
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(sr_in[4]),
+		.data_out(sr_out[4])
+		);
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) s_5
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(sr_in[5]),
+		.data_out(sr_out[5])
 		);
 	
-	assign sr_in[0] = rst ? 0 : (write_en ? data : sr_out[5]);
+	assign sr_in[0] = rst ? {DATA_WIDTH{1'h0}} : (write_en ? data : sr_out[5]);
 	assign sr_in[1] = sr_out[0]; 
 	assign sr_in[2] = sr_out[1]; 
 	assign sr_in[3] = sr_out[2]; 
@@ -515,4 +1143,65 @@ module ym3438_ch_register #(parameter DATA_WIDTH = 1)
 	assign data_o_4 = sr_out[4];
 	assign data_o_5 = sr_out[5];
 	
+endmodule
+
+module ym3438_reg_wr_ctrl #(parameter REG_ADDRESS = 0)
+	(
+	input MCLK,
+	input c1,
+	input c2,
+	input [7:0] data,
+	input bank,
+	input write_addr_en,
+	input write_data_en,
+	output reg_wr
+	);
+
+	
+	wire reg_addr_o2;
+	wire reg_addr_o = ~reg_addr_o2;
+	wire reg_addr_sel = ~bank & data == REG_ADDRESS & write_addr_en;
+
+	ym3438_sr_bit reg_addr_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.bit_in(~(reg_addr_sel | (reg_addr_o & ~write_addr_en))),
+		.sr_out(reg_addr_o2)
+		);
+
+		
+	assign reg_wr = reg_addr_o & ~bank & write_data_en;
+
+endmodule
+
+module ym3438_reg_data #(parameter DATA_WIDTH = 1)
+	(
+	input MCLK,
+	input c1,
+	input c2,
+	input [DATA_WIDTH-1:0] data,
+	input reg_wr,
+	input rst,
+	output [DATA_WIDTH-1:0] data_o
+	);
+
+	
+	wire [DATA_WIDTH-1:0] reg_sr_in;
+	wire [DATA_WIDTH-1:0] reg_sr_out;
+
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) reg_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(reg_sr_in),
+		.data_out(reg_sr_out)
+		);
+
+		
+	assign reg_sr_in = rst ? {DATA_WIDTH{1'h0}} : (reg_wr ? data : reg_sr_out);
+	assign data_o = reg_sr_out;
+
 endmodule

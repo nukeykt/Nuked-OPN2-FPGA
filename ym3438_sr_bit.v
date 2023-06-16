@@ -1,16 +1,16 @@
-module ym3438_sr_bit #(parameter SR_LENGTH = 1, DATA_WIDTH = 1)
+module ym3438_sr_bit #(parameter SR_LENGTH = 1)
 	(
 	input MCLK,
 	input c1,
 	input c2,
 	input bit_in,
-	output [SR_LENGTH-1:0] sr_out
+	output sr_out
 	);
 	
 	reg [SR_LENGTH-1:0] v1 = 0;
 	reg [SR_LENGTH-1:0] v2 = 0;
 	
-	assign sr_out = v2;
+	assign sr_out = v2[SR_LENGTH-1];
 	
 	always @(posedge MCLK)
 	begin
@@ -37,7 +37,7 @@ module ym3438_sr_bit_array #(parameter SR_LENGTH = 1, DATA_WIDTH = 16)
 	output [DATA_WIDTH-1:0] data_out
 	);
 	
-	wire [SR_LENGTH-1:0] out[0:DATA_WIDTH-1];
+	wire out[0:DATA_WIDTH-1];
 	
 	generate
 		genvar i;
@@ -51,7 +51,7 @@ module ym3438_sr_bit_array #(parameter SR_LENGTH = 1, DATA_WIDTH = 16)
 			.sr_out(out[i])
 			);
 			
-			assign data_out[i] = out[i][SR_LENGTH-1];
+			assign data_out[i] = out[i];
 		end
 	endgenerate
 
@@ -81,7 +81,7 @@ module ym3438_cnt_bit #(parameter DATA_WIDTH = 1)
 		.data_out(data_out)
 		);
 	
-	assign sum = reset ? 0 : data_out + c_in;
+	assign sum = reset ? {DATA_WIDTH{1'h0}} : data_out + c_in;
 	assign val = data_out;
 	assign data_in = sum[DATA_WIDTH-1:0];
 	assign c_out = sum[DATA_WIDTH];
@@ -222,5 +222,38 @@ module ym3438_rs_trig_sync
 				nq <= 1;
 		end
 	end
+	
+endmodule
+
+module ym3438_cnt_bit_load #(parameter DATA_WIDTH = 1)
+	(
+	input MCLK,
+	input c1,
+	input c2,
+	input c_in,
+	input reset,
+	input load,
+	input [DATA_WIDTH-1:0] load_val,
+	output [DATA_WIDTH-1:0] val,
+	output c_out
+	);
+	
+	wire [DATA_WIDTH-1:0] data_in;
+	wire [DATA_WIDTH-1:0] data_out;
+	wire [DATA_WIDTH:0] sum;
+	
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) mem
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(data_in),
+		.data_out(data_out)
+		);
+	
+	assign sum = reset ? {DATA_WIDTH{1'h0}} : (load ? load_val : data_out) + c_in;
+	assign val = data_out;
+	assign data_in = sum[DATA_WIDTH-1:0];
+	assign c_out = sum[DATA_WIDTH];
 	
 endmodule

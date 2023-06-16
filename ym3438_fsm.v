@@ -12,6 +12,7 @@ module ym3438_fsm
 	output fsm_timer_ed_o,
 	output fsm_op1_sel_o,
 	output fsm_op2_sel_o,
+	output fsm_ch3_sel_o,
 	output alg_fb_sel_o,
 	output alg_op2_o,
 	output alg_cur1_o,
@@ -32,7 +33,7 @@ module ym3438_fsm
 		.MCLK(MCLK),
 		.c1(c1),
 		.c2(c2),
-		.c_in(1),
+		.c_in(1'h1),
 		.reset(reset_low_cnt),
 		.val(cnt_low_out),
 		.c_out()
@@ -131,6 +132,7 @@ module ym3438_fsm
 	assign fsm_timer_ed_o = fsm_timer_ed;
 	assign fsm_op1_sel_o = fsm_op1_sel;
 	assign fsm_op2_sel_o = fsm_op2_sel;
+	assign fsm_ch3_sel_o = fsm_ch3_sel;
 	assign alg_fb_sel_o = alg_fb_sel;
 	assign alg_op2_o = alg_op2;
 	assign alg_cur1_o = alg_cur1;

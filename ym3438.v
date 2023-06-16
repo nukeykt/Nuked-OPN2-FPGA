@@ -40,6 +40,7 @@ module ym3438(
 	wire fsm_timer_ed;
 	wire fsm_op1_sel;
 	wire fsm_op2_sel;
+	wire fsm_ch3_sel;
 	wire alg_fb_sel;
 	wire alg_op2;
 	wire alg_cur1;
@@ -60,6 +61,7 @@ module ym3438(
 		.fsm_timer_ed_o(fsm_timer_ed),
 		.fsm_op1_sel_o(fsm_op1_sel),
 		.fsm_op2_sel_o(fsm_op2_sel),
+		.fsm_ch3_sel_o(fsm_ch3_sel),
 		.alg_fb_sel_o(alg_fb_sel),
 		.alg_op2_o(alg_op2),
 		.alg_cur1_o(alg_cur1),
@@ -105,7 +107,10 @@ module ym3438(
 		.write_addr_en(write_addr_en),
 		.write_data_en(write_data_en),
 		.IC(IC),
-		.fsm_sel_23(fsm_sel23)
+		.fsm_sel_23(fsm_sel23),
+		.fsm_sel_1(fsm_sel1),
+		.timer_ed(fsm_timer_ed),
+		.ch3_sel(fsm_ch3_sel)
 		);
 	
 endmodule
