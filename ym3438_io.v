@@ -9,10 +9,17 @@ module ym3438_io
 	input WR,
 	input RD,
 	input IC,
-	output [7:0] data_bus,
+	input timer_a,
+	input timer_b,
+	input read_mode,
 	output write_addr_en,
 	output write_data_en,
-	output io_IC
+	output io_IC,
+	output [7:0] data_bus,
+	output bank,
+	output [7:0] data_o,
+	output io_dir,
+	output irq
 	);
 	
 	
@@ -154,6 +161,41 @@ module ym3438_io
 		.bit_in(busy_state_i),
 		.sr_out(busy_state_o)
 		);
+	
+	assign io_dir = ~(IC & ~RD & ~CS);
+	
+	assign data_bus = (io_dir & IC) ? data_l_out[7:0] : 8'h00; // tristate + pull down
 
+	assign bank = data_l_out[8];
+	
+	wire read_status = ~read_mode & read_en;
+	
+	wire timer_a_status_sl_out;
+	
+	ym3438_slatch timer_a_status_sl
+		(
+		.MCLK(MCLK),
+		.en(c2),
+		.inp(timer_a),
+		.val(),
+		.nval(timer_a_status_sl_out)
+		);
+	
+	wire timer_b_status_sl_out;
+	
+	ym3438_slatch timer_b_status_sl
+		(
+		.MCLK(MCLK),
+		.en(c2),
+		.inp(timer_b),
+		.val(),
+		.nval(timer_a_status_sl_out)
+		);
+	
+	bufif1(data_o[0], timer_b_status_sl_out, read_status);
+	bufif1(data_o[1], timer_a_status_sl_out, read_status);
+	bufif1(data_o[7], ~busy_state_o, read_status);
+	
+	assign irq = ~(timer_a_status_sl_out | timer_b_status_sl_out);
 
 endmodule

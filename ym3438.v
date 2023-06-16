@@ -1,23 +1,16 @@
 module ym3438(
-	MCLK, PHI, DATA_i, DATA_o, DATA_o_z, TEST_i, TEST_o, IC, IRQ, CS, WR, RD, ADDRESS, MOL, MOR
-	,
-	d_c1, d_c2
+	input MCLK,
+	input PHI,
+	input [7:0] DATA_i,
+	output [7:0] DATA_o,
+	output DATA_o_z,
+	input TEST_i,
+	output TEST_o,
+	input IC, IRQ, CS, WR, RD,
+	input [1:0] ADDRESS,
+	output [8:0] MOL, MOR
 	);
-	input MCLK;
-	input PHI;
 	
-	input [7:0] DATA_i;
-	output [7:0] DATA_o;
-	output DATA_o_z;
-	
-	input TEST_i;
-	output TEST_o;
-	
-	input IC, IRQ, CS, WR, RD;
-	
-	input [1:0] ADDRESS;
-	
-	output [8:0] MOL, MOR;
 	
 	// temp
 	assign MOL = 9'b0;
@@ -75,6 +68,10 @@ module ym3438(
 		.alg_out_o(alg_out)
 		);
 	
+	wire [7:0] data_bus;
+	wire bank;
+	wire write_addr_en;
+	wire write_data_en;
 	
 	ym3438_io io(
 		.MCLK(MCLK),
@@ -86,17 +83,29 @@ module ym3438(
 		.WR(WR),
 		.RD(RD),
 		.IC(IC),
-		.data_bus(),
-		.write_addr_en(),
-		.write_data_en(),
-		.io_IC()
+		.timer_a(0),
+		.timer_b(0),
+		.read_mode(0),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.io_IC(),
+		.data_bus(data_bus),
+		.bank(bank),
+		.data_o(DATA_o),
+		.io_dir(),
+		.irq()
 		);
 	
-
-	output d_c1;
-	output d_c2;
-	
-	assign d_c1 = c1;
-	assign d_c2 = c2;
+	ym3438_reg_ctrl reg_ctrl(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data(data_bus),
+		.bank(bank),
+		.write_addr_en(write_addr_en),
+		.write_data_en(write_data_en),
+		.IC(IC),
+		.fsm_sel_23(fsm_sel23)
+		);
 	
 endmodule
