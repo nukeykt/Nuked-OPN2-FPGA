@@ -88,16 +88,16 @@ module ym3438_cnt_bit #(parameter DATA_WIDTH = 1)
 	
 endmodule
 
-module ym3438_dlatch_1
+module ym3438_dlatch_1 #(parameter DATA_WIDTH = 1)
 	(
 	input MCLK,
 	input c1,
-	input inp,
-	output val,
-	output nval
+	input [DATA_WIDTH-1:0] inp,
+	output [DATA_WIDTH-1:0] val,
+	output [DATA_WIDTH-1:0] nval
 	);
 	
-	reg mem = 0;
+	reg [DATA_WIDTH-1:0] mem = {DATA_WIDTH{1'h0}};
 	
 	always @(posedge MCLK)
 	begin
@@ -110,16 +110,16 @@ module ym3438_dlatch_1
 	
 endmodule
 
-module ym3438_dlatch_2
+module ym3438_dlatch_2 #(parameter DATA_WIDTH = 1)
 	(
 	input MCLK,
 	input c2,
-	input inp,
-	output val,
-	output nval
+	input [DATA_WIDTH-1:0] inp,
+	output [DATA_WIDTH-1:0] val,
+	output [DATA_WIDTH-1:0] nval
 	);
 	
-	reg mem = 0;
+	reg [DATA_WIDTH-1:0] mem = {DATA_WIDTH{1'h0}};
 	
 	always @(posedge MCLK)
 	begin
@@ -153,16 +153,16 @@ module ym3438_edge_detect
 	assign outp = ~(prev_out | ~inp);
 endmodule
 
-module ym3438_slatch
+module ym3438_slatch #(parameter DATA_WIDTH = 1)
 	(
 	input MCLK,
 	input en,
-	input inp,
-	output val,
-	output nval
+	input [DATA_WIDTH-1:0] inp,
+	output [DATA_WIDTH-1:0] val,
+	output [DATA_WIDTH-1:0] nval
 	);
 	
-	reg mem = 0;
+	reg [DATA_WIDTH-1:0] mem = {DATA_WIDTH{1'h0}};
 	
 	always @(posedge MCLK)
 	begin

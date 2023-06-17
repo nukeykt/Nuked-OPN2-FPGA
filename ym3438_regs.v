@@ -1013,7 +1013,37 @@ module ym3438_reg_ctrl
 		);
 		
 	assign kon_csm = kon_csm_o & ch3_sel;
+	
+	wire [10:0] fnum_mux;
+	
+	ym3438_sr_bit_array #(.DATA_WIDTH(11)) fnum_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(fnum_mux),
+		.data_out(fnum)
+		);
+	
+	wire ch3_match = reg_cnt[2:0] == 3'h1;
+	
+	wire fnum_sel_ch3_1 = (reg_cnt[4:3] == 2'h0) & ch3_match & mode_ch3;
+	wire fnum_sel_ch3_2 = (reg_cnt[4:3] == 2'h2) & ch3_match & mode_ch3;
+	wire fnum_sel_ch3_3 = (reg_cnt[4:3] == 2'h1) & ch3_match & mode_ch3;
+	wire fnum_sel_normal = ~fnum_sel_ch3_1 & ~fnum_sel_ch3_2 & ~fnum_sel_ch3_3;
 
+	assign fnum_mux = (reg_fnum_o & { 11 {fnum_sel_normal}})
+		| (reg_fnum_ch3_o_0 & { 11 {fnum_sel_ch3_3}})
+		| (reg_fnum_ch3_o_4 & { 11 {fnum_sel_ch3_2}})
+		| (reg_fnum_ch3_o_5 & { 11 {fnum_sel_ch3_1}});
+
+	assign block = (reg_block_o & { 3 {fnum_sel_normal}})
+		| (reg_block_ch3_o_0 & { 3 {fnum_sel_ch3_3}})
+		| (reg_block_ch3_o_4 & { 3 {fnum_sel_ch3_2}})
+		| (reg_block_ch3_o_5 & { 3 {fnum_sel_ch3_1}});
+	
+	assign note[1] = fnum_mux[10];
+	assign note[0] = fnum_mux[10] ? (fnum_mux[9:7] != 3'h0) : (fnum_mux[9:7] ==3'h7);
 	
 endmodule
 
