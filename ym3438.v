@@ -105,6 +105,10 @@ module ym3438(
 	
 	wire [10:0] reg_fnum;
 	
+	wire [4:0] reg_kcode;
+	
+	wire [2:0] reg_dt;
+	
 	ym3438_reg_ctrl reg_ctrl(
 		.MCLK(MCLK),
 		.c1(c1),
@@ -121,7 +125,10 @@ module ym3438(
 		.reg_21(reg_21),
 		.lfo(reg_lfo),
 		.pms(reg_pms),
-		.fnum(reg_fnum)
+		.fnum(reg_fnum),
+		.block(reg_kcode[4:2]),
+		.note(reg_kcode[1:0]),
+		.dt(reg_dt)
 		);
 	
 	wire [11:0] fnum_lfo;
@@ -138,6 +145,36 @@ module ym3438(
 		.IC(IC),
 		.fnum(reg_fnum),
 		.fnum_lfo(fnum_lfo)
+		);
+	
+	wire [4:0] kcode_sr1_o;
+	wire [4:0] kcode_sr2_o;
+	
+	ym3438_sr_bit_array #(.DATA_WIDTH(5)) kcode_sr1
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(reg_kcode),
+		.data_out(kcode_sr1_o)
+		);
+	
+	ym3438_sr_bit_array #(.DATA_WIDTH(5)) kcode_sr2
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(kcode_sr1_o),
+		.data_out(kcode_sr2_o)
+		);
+	
+	ym3438_detune detune
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.dt(reg_dt),
+		.kcode(kcode_sr2_o)
 		);
 	
 endmodule
