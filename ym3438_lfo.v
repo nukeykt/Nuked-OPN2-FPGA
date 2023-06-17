@@ -232,7 +232,7 @@ module ym3438_lfo
 		(
 		.MCLK(MCLK),
 		.c2(c2),
-		.inp(lfo_pm_sum_sh),
+		.inp(lfo_pm_sum_xnor),
 		.val(),
 		.nval(lfo_pm_sum_o)
 		);

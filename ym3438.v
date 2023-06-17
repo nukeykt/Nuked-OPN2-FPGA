@@ -108,6 +108,7 @@ module ym3438(
 	wire [4:0] reg_kcode;
 	
 	wire [2:0] reg_dt;
+	wire [3:0] reg_multi;
 	
 	ym3438_reg_ctrl reg_ctrl(
 		.MCLK(MCLK),
@@ -128,7 +129,8 @@ module ym3438(
 		.fnum(reg_fnum),
 		.block(reg_kcode[4:2]),
 		.note(reg_kcode[1:0]),
-		.dt(reg_dt)
+		.dt(reg_dt),
+		.multi(reg_multi)
 		);
 	
 	wire [11:0] fnum_lfo;
@@ -168,13 +170,41 @@ module ym3438(
 		.data_out(kcode_sr2_o)
 		);
 	
+	wire dt_sign_1;
+	wire dt_sign_2;
+	wire [4:0] dt_value;
+	
 	ym3438_detune detune
 		(
 		.MCLK(MCLK),
 		.c1(c1),
 		.c2(c2),
 		.dt(reg_dt),
-		.kcode(kcode_sr2_o)
+		.kcode(kcode_sr2_o),
+		.dt_sign_1(dt_sign_1),
+		.dt_sign_2(dt_sign_2),
+		.dt_value(dt_value)
+		);
+	
+	wire [9:0] pg_out;
+	wire pg_dbg_o;
+	
+	ym3438_pg pg
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.fnum(fnum_lfo),
+		.block(kcode_sr1_o[4:2]),
+		.dt_sign_1(dt_sign_1),
+		.dt_sign_2(dt_sign_2),
+		.dt_value(dt_value),
+		.multi(reg_multi),
+		.pg_reset(1),
+		.reg_21(reg_21),
+		.fsm_sel2(fsm_sel2),
+		.pg_out(pg_out),
+		.pg_dbg_o(pg_dbg_o)
 		);
 	
 endmodule

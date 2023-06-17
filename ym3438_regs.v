@@ -153,6 +153,17 @@ module ym3438_reg_ctrl
 	wire op_write80 = op_write & (fm_address_out[7:4] == 4'h8);
 	wire op_write90 = op_write & (fm_address_out[7:4] == 4'h9);
 	
+	wire [3:0] reg_multi_o;
+	
+	ym3438_sr_bit_array #(.DATA_WIDTH(4), .SR_LENGTH(2)) reg_multi_sr
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(reg_multi_o),
+		.data_out(multi)
+		);
+	
 	ym3438_op_register #(.DATA_WIDTH(4)) reg_multi
 		(
 		.MCLK(MCLK),
@@ -163,7 +174,7 @@ module ym3438_reg_ctrl
 		.rst(nIC),
 		.bank(fm_address_out[3]),
 		.obank(reg_cnt[4]),
-		.data_o(multi)
+		.data_o(reg_multi_o)
 		);
 	
 	ym3438_op_register #(.DATA_WIDTH(3)) reg_dt

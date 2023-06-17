@@ -257,3 +257,41 @@ module ym3438_cnt_bit_load #(parameter DATA_WIDTH = 1)
 	assign c_out = sum[DATA_WIDTH];
 	
 endmodule
+
+module ym3438_dbg_read #(parameter DATA_WIDTH = 1)
+	(
+	input MCLK,
+	input c1,
+	input c2,
+	input prev,
+	input load,
+	input [DATA_WIDTH-1:0] load_val,
+	output next
+	);
+	
+	wire [DATA_WIDTH-1:0] data_in;
+	wire [DATA_WIDTH-1:0] data_out;
+	
+	ym3438_sr_bit_array #(.DATA_WIDTH(DATA_WIDTH)) mem
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.data_in(data_in),
+		.data_out(data_out)
+		);
+		
+	wire [DATA_WIDTH-1:0] chain;
+	
+	assign data_in = chain | (load ? load_val : {DATA_WIDTH{1'h0}});
+	
+	generate
+		if (DATA_WIDTH == 1)
+			assign chain = prev;
+		else
+			assign chain = { data_out[DATA_WIDTH-2:0], prev };
+	endgenerate
+	
+	assign next = data_out[DATA_WIDTH-1];
+	
+endmodule
