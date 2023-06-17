@@ -97,6 +97,9 @@ module ym3438(
 		.io_dir(),
 		.irq()
 		);
+		
+	wire [3:0] reg_lfo;
+	wire [7:0] reg_21;
 	
 	ym3438_reg_ctrl reg_ctrl(
 		.MCLK(MCLK),
@@ -110,7 +113,20 @@ module ym3438(
 		.fsm_sel_23(fsm_sel23),
 		.fsm_sel_1(fsm_sel1),
 		.timer_ed(fsm_timer_ed),
-		.ch3_sel(fsm_ch3_sel)
+		.ch3_sel(fsm_ch3_sel),
+		.reg_21(reg_21),
+		.lfo(reg_lfo)
+		);
+		
+	ym3438_lfo lfo
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.lfo(reg_lfo),
+		.fsm_sel23(fsm_sel23),
+		.reg_21(reg_21),
+		.IC(IC)
 		);
 	
 endmodule
