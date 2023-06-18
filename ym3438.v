@@ -6,23 +6,15 @@ module ym3438(
 	output DATA_o_z,
 	input TEST_i,
 	output TEST_o,
-	input IC, IRQ, CS, WR, RD,
+	output TEST_o_z,
+	input IC, CS, WR, RD,
 	input [1:0] ADDRESS,
+	output IRQ,
 	output [8:0] MOL, MOR
 	);
 	
-	
-	// temp
-	assign MOL = 9'b0;
-	assign MOR = 9'b0;
-	assign DATA_o = 8'b0;
-	assign DATA_o_z = 1'b0;
-	assign TEST_o = 1'b0;
-	
 	wire c1, c2;
 	wire reset_fsm;
-	
-	wire [2:0] connect = 0;
 	
 	ym3438_prescaler prescaler(
 		.MCLK(MCLK),
@@ -50,6 +42,8 @@ module ym3438(
 	wire fsm_dac_load;
 	wire fsm_dac_out_sel;
 	wire fsm_dac_ch6;
+	
+	wire [2:0] connect;
 	
 	ym3438_fsm fsm(
 		.MCLK(MCLK),
@@ -81,6 +75,22 @@ module ym3438(
 	wire write_addr_en;
 	wire write_data_en;
 	
+	wire timer_a_status;
+	wire timer_b_status;
+	
+	wire [7:0] reg_21;
+	wire [7:3] reg_2c;
+	
+	wire pg_dbg;
+	wire eg_dbg;
+	wire eg_dbg_inc;
+	
+	wire [13:0] op_dbg;
+	wire [8:0] ch_dbg;
+	
+	assign TEST_o = fsm_sel23;
+	assign TEST_o_z = reg_2c[7];
+	
 	ym3438_io io(
 		.MCLK(MCLK),
 		.c1(c1),
@@ -91,22 +101,25 @@ module ym3438(
 		.WR(WR),
 		.RD(RD),
 		.IC(IC),
-		.timer_a(0),
-		.timer_b(0),
-		.read_mode(0),
+		.timer_a(timer_a_status),
+		.timer_b(timer_b_status),
+		.reg_21(reg_21),
+		.reg_2c(reg_2c),
+		.pg_dbg(pg_dbg),
+		.eg_dbg(eg_dbg),
+		.eg_dbg_inc(eg_dbg_inc),
+		.op_dbg(op_dbg),
+		.ch_dbg(ch_dbg),
 		.write_addr_en(write_addr_en),
 		.write_data_en(write_data_en),
-		.io_IC(),
 		.data_bus(data_bus),
 		.bank(bank),
 		.data_o(DATA_o),
-		.io_dir(),
-		.irq()
+		.io_dir(DATA_o_z),
+		.irq(IRQ)
 		);
 		
 	wire [3:0] reg_lfo;
-	wire [7:0] reg_21;
-	wire [7:3] reg_2c;
 	
 	wire [2:0] reg_pms;
 	
@@ -143,6 +156,8 @@ module ym3438(
 	
 	wire dac_en;
 	wire [7:0] dac;
+	
+	wire [1:0] pan;
 	
 	ym3438_reg_ctrl reg_ctrl(
 		.MCLK(MCLK),
@@ -186,7 +201,11 @@ module ym3438(
 		.dac(dac),
 		.dac_en(dac_en),
 		.fsm_dac_load(fsm_dac_load),
-		.fsm_dac_out_sel(fsm_dac_out_sel)
+		.fsm_dac_out_sel(fsm_dac_out_sel),
+		.pan_o(pan),
+		.timer_a_status(timer_a_status),
+		.timer_b_status(timer_b_status),
+		.connect(connect)
 		);
 	
 	wire [11:0] fnum_lfo;
@@ -245,7 +264,6 @@ module ym3438(
 		);
 	
 	wire [9:0] pg_out;
-	wire pg_dbg_o;
 	
 	wire pg_reset;
 	
@@ -264,12 +282,10 @@ module ym3438(
 		.reg_21(reg_21),
 		.fsm_sel2(fsm_sel2),
 		.pg_out(pg_out),
-		.pg_dbg_o(pg_dbg_o)
+		.pg_dbg_o(pg_dbg)
 		);
 	
 	wire [9:0] eg_out;
-	wire eg_dbg_o;
-	wire eg_test_inc;
 		
 	ym3438_eg eg
 		(
@@ -303,11 +319,13 @@ module ym3438(
 		.rate_sel(rate_sel),
 		.pg_reset(pg_reset),
 		.eg_out(eg_out),
-		.test_inc(eg_test_inc),
-		.eg_dbg(eg_dbg_o)
+		.test_inc(eg_dbg_inc),
+		.eg_dbg(eg_dbg)
 		);
 	
 	wire [13:0] op_output;
+	
+	assign op_dbg = op_output;
 	
 	ym3438_op op
 		(
@@ -328,9 +346,9 @@ module ym3438(
 		.fb(reg_fb),
 		.op_output(op_output)
 		);
-	
-	wire [8:0] ch_dbg;
+
 	wire [8:0] ch_out;
+	wire [1:0] ch_pan;
 	
 	ym3438_ch ch
 		(
@@ -346,8 +364,13 @@ module ym3438(
 		.fsm_dac_load(fsm_dac_load),
 		.fsm_dac_out_sel(fsm_dac_out_sel),
 		.fsm_dac_ch6(fsm_dac_ch6),
+		.pan(pan),
 		.ch_dbg(ch_dbg),
-		.ch_out(ch_out)
+		.ch_out(ch_out),
+		.ch_pan(ch_pan)
 		);
+	
+	assign MOR = ch_pan[0] ? ch_out : 9'h100;
+	assign MOL = ch_pan[1] ? ch_out : 9'h100;
 	
 endmodule

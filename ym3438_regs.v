@@ -44,7 +44,6 @@ module ym3438_reg_ctrl
 	output kon,
 	output kon_csm,
 	output mode_csm,
-	output mode_ch3,
 	output timer_a_status,
 	output timer_b_status
 	);
@@ -877,7 +876,7 @@ module ym3438_reg_ctrl
 	
 	assign mode_csm = reg_27_mode_o == 2'b10;
 	
-	assign mode_ch3 = reg_27_mode_o != 2'b00;
+	wire mode_ch3 = reg_27_mode_o != 2'b00;
 	
 	wire timer_test = reg_21[2];
 	
