@@ -131,6 +131,8 @@ module ym3438(
 	wire [6:0] reg_tl;
 	wire [1:0] reg_ams;
 	
+	wire [2:0] reg_fb;
+	
 	wire mode_csm;
 	
 	ym3438_reg_ctrl reg_ctrl(
@@ -170,7 +172,8 @@ module ym3438(
 		.ssg_type3(ssg_type3),
 		.tl(reg_tl),
 		.ams(reg_ams),
-		.mode_csm(mode_csm)
+		.mode_csm(mode_csm),
+		.fb(reg_fb)
 		);
 	
 	wire [11:0] fnum_lfo;
@@ -289,6 +292,28 @@ module ym3438(
 		.eg_out(eg_out),
 		.test_inc(eg_test_inc),
 		.eg_dbg(eg_dbg_o)
+		);
+	
+	wire [13:0] op_output;
+	
+	ym3438_op op
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.pg_phase(pg_out),
+		.eg_att(eg_out),
+		.reg_21(reg_21),
+		.is_op1(fsm_op1_sel),
+		.is_op2(fsm_op2_sel),
+		.add1_cur(alg_cur1),
+		.add1_op1_2(fsm_op2_sel),
+		.add1_op2(alg_op2),
+		.add2_cur(alg_cur2),
+		.add2_op1_1(alg_op1_0),
+		.no_fb(alg_fb_sel),
+		.fb(reg_fb),
+		.op_output(op_output)
 		);
 	
 endmodule
