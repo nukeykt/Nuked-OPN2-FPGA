@@ -17,9 +17,14 @@ module ym3438_reg_ctrl
 	output [2:0] dt,
 	output [6:0] tl,
 	output [1:0] ks,
-	output am,
-	output [3:0] sl,
-	output [3:0] ssgeg,
+	output [4:0] sl,
+	output ssg_enable,
+	output ssg_inv,
+	output ssg_repeat,
+	output ssg_holdup,
+	output ssg_type0,
+	output ssg_type2,
+	output ssg_type3,
 	output [4:0] rate,
 	output [10:0] fnum,
 	output [2:0] block,
@@ -245,6 +250,8 @@ module ym3438_reg_ctrl
 		.obank(reg_cnt[4]),
 		.data_o(dr)
 		);
+		
+	wire am;
 	
 	ym3438_op_register #(.DATA_WIDTH(1)) reg_am
 		(
@@ -299,8 +306,12 @@ module ym3438_reg_ctrl
 		.rst(nIC),
 		.bank(fm_address_out[3]),
 		.obank(reg_cnt[4]),
-		.data_o(sl)
+		.data_o(sl[3:0])
 		);
+	
+	assign sl[4] = sl[3:0] == 4'hf;
+	
+	wire [3:0] ssgeg;
 	
 	ym3438_op_register #(.DATA_WIDTH(4)) reg_ssgeg
 		(
@@ -314,6 +325,14 @@ module ym3438_reg_ctrl
 		.obank(reg_cnt[4]),
 		.data_o(ssgeg)
 		);
+		
+	assign ssg_enable = ssgeg[3];
+	assign ssg_inv = ssgeg[2];
+	assign ssg_repeat = ssgeg[0];
+	assign ssg_holdup = ssgeg[2:0] == 3'h3 | ssgeg[2:0] == 3'h5;
+	assign ssg_type0 = ssgeg[1:0] == 2'h0;
+	assign ssg_type2 = ssgeg[1:0] == 2'h2;
+	assign ssg_type3 = ssgeg[1:0] == 2'h3;
 		
 	wire [5:0] reg_a4_in;
 	wire [5:0] reg_a4_out;
@@ -436,6 +455,10 @@ module ym3438_reg_ctrl
 		.data_o_5(pms)
 		);
 	
+	wire [1:0] ams_o;
+	
+	assign ams = am ? ams_o : 2'h0;
+	
 	ym3438_ch_register #(.DATA_WIDTH(2)) reg_ams
 		(
 		.MCLK(MCLK),
@@ -444,7 +467,7 @@ module ym3438_reg_ctrl
 		.data(fm_data_out[5:4]),
 		.write_en(ch_writeB4),
 		.rst(nIC),
-		.data_o_5(ams)
+		.data_o_5(ams_o)
 		);
 	
 	ym3438_ch_register #(.DATA_WIDTH(2)) reg_pan
@@ -1055,6 +1078,18 @@ module ym3438_reg_ctrl
 	
 	assign note[1] = fnum_mux[10];
 	assign note[0] = fnum_mux[10] ? (fnum_mux[9:7] != 3'h0) : (fnum_mux[9:7] ==3'h7);
+	
+	wire rate_sel_a = rate_sel == 2'h0;
+	wire rate_sel_d = rate_sel == 2'h1;
+	wire rate_sel_s = rate_sel == 2'h2;
+	wire rate_sel_r = rate_sel == 2'h3;
+	
+	assign rate = (
+		({5{rate_sel_a}} & ar)
+		| ({5{rate_sel_d}} & dr)
+		| ({5{rate_sel_s}} & sr)
+		| {({4{rate_sel_r}} & rr), rate_sel_r}
+		);
 	
 endmodule
 

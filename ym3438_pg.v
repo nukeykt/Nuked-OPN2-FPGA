@@ -380,7 +380,7 @@ module ym3438_pg
 	
 	assign pg_out = pg_values_o[19:10];
 	
-	ym3438_dbg_read dbg_read
+	ym3438_dbg_read #(.DATA_WIDTH(10)) dbg_read
 		(
 		.MCLK(MCLK),
 		.c1(c1),

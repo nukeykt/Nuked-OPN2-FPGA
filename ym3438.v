@@ -100,6 +100,7 @@ module ym3438(
 		
 	wire [3:0] reg_lfo;
 	wire [7:0] reg_21;
+	wire [7:3] reg_2c;
 	
 	wire [2:0] reg_pms;
 	
@@ -109,6 +110,28 @@ module ym3438(
 	
 	wire [2:0] reg_dt;
 	wire [3:0] reg_multi;
+	
+	wire [4:0] reg_rate;
+	wire [1:0] reg_ks;
+	
+	wire [1:0] rate_sel;
+	wire [4:0] reg_sl;
+	
+	wire kon;
+	wire kon_csm;
+	
+	wire ssg_enable;
+	wire ssg_inv;
+	wire ssg_repeat;
+	wire ssg_holdup;
+	wire ssg_type0;
+	wire ssg_type2;
+	wire ssg_type3;
+	
+	wire [6:0] reg_tl;
+	wire [1:0] reg_ams;
+	
+	wire mode_csm;
 	
 	ym3438_reg_ctrl reg_ctrl(
 		.MCLK(MCLK),
@@ -124,16 +147,34 @@ module ym3438(
 		.timer_ed(fsm_timer_ed),
 		.ch3_sel(fsm_ch3_sel),
 		.reg_21(reg_21),
+		.reg_2c(reg_2c),
 		.lfo(reg_lfo),
 		.pms(reg_pms),
 		.fnum(reg_fnum),
 		.block(reg_kcode[4:2]),
 		.note(reg_kcode[1:0]),
 		.dt(reg_dt),
-		.multi(reg_multi)
+		.multi(reg_multi),
+		.rate(reg_rate),
+		.ks(reg_ks),
+		.rate_sel(rate_sel),
+		.sl(reg_sl),
+		.kon(kon),
+		.kon_csm(kon_csm),
+		.ssg_enable(ssg_enable),
+		.ssg_inv(ssg_inv),
+		.ssg_repeat(ssg_repeat),
+		.ssg_holdup(ssg_holdup),
+		.ssg_type0(ssg_type0),
+		.ssg_type2(ssg_type2),
+		.ssg_type3(ssg_type3),
+		.tl(reg_tl),
+		.ams(reg_ams),
+		.mode_csm(mode_csm)
 		);
 	
 	wire [11:0] fnum_lfo;
+	wire [5:0] lfo_am;
 		
 	ym3438_lfo lfo
 		(
@@ -146,7 +187,8 @@ module ym3438(
 		.pms(reg_pms),
 		.IC(IC),
 		.fnum(reg_fnum),
-		.fnum_lfo(fnum_lfo)
+		.fnum_lfo(fnum_lfo),
+		.lfo_am(lfo_am)
 		);
 	
 	wire [4:0] kcode_sr1_o;
@@ -189,6 +231,8 @@ module ym3438(
 	wire [9:0] pg_out;
 	wire pg_dbg_o;
 	
+	wire pg_reset;
+	
 	ym3438_pg pg
 		(
 		.MCLK(MCLK),
@@ -200,11 +244,51 @@ module ym3438(
 		.dt_sign_2(dt_sign_2),
 		.dt_value(dt_value),
 		.multi(reg_multi),
-		.pg_reset(1),
+		.pg_reset(pg_reset),
 		.reg_21(reg_21),
 		.fsm_sel2(fsm_sel2),
 		.pg_out(pg_out),
 		.pg_dbg_o(pg_dbg_o)
+		);
+	
+	wire [9:0] eg_out;
+	wire eg_dbg_o;
+	wire eg_test_inc;
+		
+	ym3438_eg eg
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.fsm_sel0(fsm_sel0),
+		.fsm_sel2(fsm_sel2),
+		.IC(IC),
+		.TEST_i(TEST_i),
+		.lsi_21(reg_21),
+		.lsi_2c(reg_2c),
+		.rate(reg_rate),
+		.ks(reg_ks),
+		.kcode(kcode_sr1_o),
+		.sl(reg_sl),
+		.kon(kon),
+		.csm_kon(kon_csm),
+		.ssg_enable(ssg_enable),
+		.ssg_inv(ssg_inv),
+		.ssg_repeat(ssg_repeat),
+		.ssg_holdup(ssg_holdup),
+		.ssg_type0(ssg_type0),
+		.ssg_type2(ssg_type2),
+		.ssg_type3(ssg_type3),
+		.tl(reg_tl),
+		.ams(reg_ams),
+		.lfo_am(lfo_am),
+		.mode_csm(mode_csm),
+		.ch3_sel(fsm_ch3_sel),
+		.rate_sel(rate_sel),
+		.pg_reset(pg_reset),
+		.eg_out(eg_out),
+		.test_inc(eg_test_inc),
+		.eg_dbg(eg_dbg_o)
 		);
 	
 endmodule
