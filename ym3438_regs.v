@@ -13,6 +13,8 @@ module ym3438_reg_ctrl
 	input timer_ed,
 	input ch3_sel,
 	input [1:0] rate_sel,
+	input fsm_dac_load,
+	input fsm_dac_out_sel,
 	output [3:0] multi,
 	output [2:0] dt,
 	output [6:0] tl,
@@ -33,7 +35,7 @@ module ym3438_reg_ctrl
 	output [2:0] fb,
 	output [2:0] pms,
 	output [1:0] ams,
-	output [1:0] pan,
+	output [1:0] pan_o,
 	output [7:0] reg_21,
 	output [3:0] lfo,
 	output [7:0] dac,
@@ -470,6 +472,9 @@ module ym3438_reg_ctrl
 		.data_o_5(ams_o)
 		);
 	
+	wire [1:0] pan_o1;
+	wire [1:0] pan_o2;
+	
 	ym3438_ch_register #(.DATA_WIDTH(2)) reg_pan
 		(
 		.MCLK(MCLK),
@@ -478,7 +483,29 @@ module ym3438_reg_ctrl
 		.data(~fm_data_out[7:6]),
 		.write_en(ch_writeB4),
 		.rst(nIC),
-		.data_o_5(pan)
+		.data_o_4(pan_o1),
+		.data_o_5(pan_o2)
+		);
+	
+	wire [1:0] pan_sel = fsm_dac_out_sel ? ~pan_o2 : ~pan_o1;
+	
+	wire load_ed_o;
+	
+	ym3438_edge_detect load_ed
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.inp(fsm_dac_load),
+		.outp(load_ed_o)
+		);
+
+	ym3438_slatch #(.DATA_WIDTH(2)) pan_lock
+		(
+		.MCLK(MCLK),
+		.en(load_ed_o),
+		.inp(pan_sel),
+		.val(pan_o),
+		.nval()
 		);
 		
 	wire reg_21_wr;

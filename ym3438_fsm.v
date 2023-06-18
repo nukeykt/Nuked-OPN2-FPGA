@@ -18,7 +18,10 @@ module ym3438_fsm
 	output alg_cur1_o,
 	output alg_cur2_o,
 	output alg_op1_0_o,
-	output alg_out_o
+	output alg_out_o,
+	output fsm_dac_load,
+	output fsm_dac_out_sel,
+	output fsm_dac_ch6
 	);
 	
 	wire [1:0] cnt_low_out;
@@ -74,10 +77,10 @@ module ym3438_fsm
 	wire fsm_sel2 = fsm_sel[2];
 	wire fsm_sel23 = fsm_sel[23];
 	wire fsm_ch3_sel = fsm_sel[2] | fsm_sel[8] | fsm_sel[14] | fsm_sel[20];
-	wire fsm_dac_load = fsm_sel[0] | fsm_sel[4] | fsm_sel[8] | fsm_sel[12] | fsm_sel[16] | fsm_sel[20];
-	wire fsm_dac_out_sel = fsm_sel[12] | fsm_sel[13] | fsm_sel[14] | fsm_sel[15] | fsm_sel[16] | fsm_sel[17]
-								| fsm_sel[18] | fsm_sel[19] | fsm_sel[20] | fsm_sel[21] | fsm_sel[22] | fsm_sel[23];
-	wire fsm_dac_ch6 = fsm_sel[4] | fsm_sel[5] | fsm_sel[6] | fsm_sel[7];
+	assign fsm_dac_load = fsm_sel[0] | fsm_sel[4] | fsm_sel[8] | fsm_sel[12] | fsm_sel[16] | fsm_sel[20];
+	assign fsm_dac_out_sel = fsm_sel[12] | fsm_sel[13] | fsm_sel[14] | fsm_sel[15] | fsm_sel[16] | fsm_sel[17]
+							| fsm_sel[18] | fsm_sel[19] | fsm_sel[20] | fsm_sel[21] | fsm_sel[22] | fsm_sel[23];
+	assign fsm_dac_ch6 = fsm_sel[4] | fsm_sel[5] | fsm_sel[6] | fsm_sel[7];
 	wire fsm_sel1 = fsm_sel[1];
 	
 	wire fsm_timer_ed;

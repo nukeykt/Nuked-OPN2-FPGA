@@ -47,6 +47,9 @@ module ym3438(
 	wire alg_cur2;
 	wire alg_op1_0;
 	wire alg_out;
+	wire fsm_dac_load;
+	wire fsm_dac_out_sel;
+	wire fsm_dac_ch6;
 	
 	ym3438_fsm fsm(
 		.MCLK(MCLK),
@@ -67,7 +70,10 @@ module ym3438(
 		.alg_cur1_o(alg_cur1),
 		.alg_cur2_o(alg_cur2),
 		.alg_op1_0_o(alg_op1_0),
-		.alg_out_o(alg_out)
+		.alg_out_o(alg_out),
+		.fsm_dac_load(fsm_dac_load),
+		.fsm_dac_out_sel(fsm_dac_out_sel),
+		.fsm_dac_ch6(fsm_dac_ch6)
 		);
 	
 	wire [7:0] data_bus;
@@ -135,6 +141,9 @@ module ym3438(
 	
 	wire mode_csm;
 	
+	wire dac_en;
+	wire [7:0] dac;
+	
 	ym3438_reg_ctrl reg_ctrl(
 		.MCLK(MCLK),
 		.c1(c1),
@@ -173,7 +182,11 @@ module ym3438(
 		.tl(reg_tl),
 		.ams(reg_ams),
 		.mode_csm(mode_csm),
-		.fb(reg_fb)
+		.fb(reg_fb),
+		.dac(dac),
+		.dac_en(dac_en),
+		.fsm_dac_load(fsm_dac_load),
+		.fsm_dac_out_sel(fsm_dac_out_sel)
 		);
 	
 	wire [11:0] fnum_lfo;
@@ -314,6 +327,27 @@ module ym3438(
 		.no_fb(alg_fb_sel),
 		.fb(reg_fb),
 		.op_output(op_output)
+		);
+	
+	wire [8:0] ch_dbg;
+	wire [8:0] ch_out;
+	
+	ym3438_ch ch
+		(
+		.MCLK(MCLK),
+		.c1(c1),
+		.c2(c2),
+		.op_value(op_output[13:5]),
+		.op_out(alg_out),
+		.dac_en(dac_en),
+		.dac(dac),
+		.reg_2c(reg_2c),
+		.op1_sel(fsm_op1_sel),
+		.fsm_dac_load(fsm_dac_load),
+		.fsm_dac_out_sel(fsm_dac_out_sel),
+		.fsm_dac_ch6(fsm_dac_ch6),
+		.ch_dbg(ch_dbg),
+		.ch_out(ch_out)
 		);
 	
 endmodule
