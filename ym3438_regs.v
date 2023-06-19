@@ -328,8 +328,8 @@ module ym3438_reg_ctrl
 		);
 		
 	assign ssg_enable = ssgeg[3];
-	assign ssg_inv = ssgeg[2];
-	assign ssg_repeat = ssgeg[0];
+	assign ssg_inv = ssgeg[2] & ssg_enable;
+	assign ssg_repeat = ~ssgeg[0];
 	assign ssg_holdup = ssgeg[2:0] == 3'h3 | ssgeg[2:0] == 3'h5;
 	assign ssg_type0 = ssgeg[1:0] == 2'h0;
 	assign ssg_type2 = ssgeg[1:0] == 2'h2;

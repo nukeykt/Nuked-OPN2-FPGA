@@ -39,11 +39,11 @@ module ym3438_detune
 	assign dt_sum[6:2] = 1'h1 + { dt_1_2_3, 1'h0, dt_sr_o[1], dt_3 } + { 1'h0, kcode[4:2] };
 	assign dt_sum[1:0] = kcode[4:2] == 3'h7 ? 2'h0 : kcode[1:0];
 	
-	wire dt_shift_5 = dt_sum[6:3] == 4'h5;
-	wire dt_shift_6 = dt_sum[6:3] == 4'h6;
-	wire dt_shift_7 = dt_sum[6:3] == 4'h7;
-	wire dt_shift_8 = dt_sum[6:3] == 4'h8;
-	wire dt_shift_9 = dt_sum[6:3] == 4'h9;
+	wire dt_shift_5 = dt_sum[6:3] == 4'h5 & dt_1_2_3;
+	wire dt_shift_6 = dt_sum[6:3] == 4'h6 & dt_1_2_3;
+	wire dt_shift_7 = dt_sum[6:3] == 4'h7 & dt_1_2_3;
+	wire dt_shift_8 = dt_sum[6:3] == 4'h8 & dt_1_2_3;
+	wire dt_shift_9 = dt_sum[6:3] == 4'h9 & dt_1_2_3;
 	
 	wire [7:0] dt_index;
 	
