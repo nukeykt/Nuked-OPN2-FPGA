@@ -48,7 +48,7 @@ module ym3438_pg
 	wire [15:0] freq2 = ({16{block_sh0}} & { 3'h0, freq1 })
 		| ({16{block_sh1}} & { 2'h0, freq1, 1'h0 })
 		| ({16{block_sh2}} & { 1'h0, freq1, 2'h0 })
-		| ({16{block_sh3}} & { freq1 });
+		| ({16{block_sh3}} & { freq1, 3'h0 });
 	
 	wire [16:0] freq3 = ~(
 		({17{~block_l_o[2]}} & { 4'h0, freq2[15:3] })

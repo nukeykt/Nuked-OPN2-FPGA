@@ -101,7 +101,7 @@ module ym3438_fsm
 		.MCLK(MCLK),
 		.c1(c1),
 		.c2(c2),
-		.bit_in(fsm_op3_sel),
+		.bit_in(fsm_op2_sel),
 		.sr_out(alg_fb_sel_sr_out)
 		);
 
@@ -123,8 +123,8 @@ module ym3438_fsm
 	wire alg_012 = alg_sel[0] | alg_sel[1] | alg_sel[2];
 	
 	wire alg_op2 = (fsm_op4_sel & alg_012) | (fsm_op3_sel & alg_sel[3]);
-	wire alg_cur1 = (fsm_op1_sel & alg_03456) | (fsm_op3_sel & alg_0134);
-	wire alg_cur2 = (fsm_op3_sel & alg_sel[2]);
+	wire alg_cur1 = (fsm_op3_sel & alg_sel[2]);
+	wire alg_cur2 = (fsm_op1_sel & alg_03456) | (fsm_op3_sel & alg_0134);
 	wire alg_op1_0 = (fsm_op4_sel & alg_15) | (fsm_op3_sel & alg_25) | fsm_op2_sel;
 	wire alg_out = (fsm_op1_sel & alg_sel[7]) | (fsm_op3_sel & alg_567) | (fsm_op2_sel & alg_4567) | fsm_op4_sel;
 	
