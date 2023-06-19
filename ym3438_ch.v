@@ -20,7 +20,9 @@ module ym3438_ch
 	
 	wire dac_test = reg_2c[5];
 	
-	wire [8:0] op_value_mask = op_out ? op_value : 9'h000;
+	wire op_out_2 = op_out & ~dac_test;
+	
+	wire [8:0] op_value_mask = op_out_2 ? op_value : 9'h000;
 	
 	wire [8:0] ch_accm_sr_i;
 	wire [8:0] ch_accm_sr_o;

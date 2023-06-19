@@ -165,6 +165,7 @@ module ym3438_op
 		);
 
 	wire [12:0] att_sum = sin_sum + { eg_att_sr_o, 2'h0 };
+	//wire [12:0] att_sum = sin_sum + 100;
 	
 	wire [12:0] att_sum_sr_o;
 	
@@ -177,7 +178,7 @@ module ym3438_op
 		.data_out(att_sum_sr_o)
 		);
 	
-	wire [11:0] att_clamp = ~(att_sum[12] ? 12'hfff : att_sum[11:0]);
+	wire [11:0] att_clamp = ~(att_sum_sr_o[12] ? 12'hfff : att_sum_sr_o[11:0]);
 	
 	wire [7:0] pow_index = att_clamp[7:0];
 	

@@ -10,7 +10,9 @@ module ym3438(
 	input IC, CS, WR, RD,
 	input [1:0] ADDRESS,
 	output IRQ,
-	output [8:0] MOL, MOR
+	output [8:0] MOL, MOR,
+	output d_c1,
+	output d_c2
 	);
 	
 	wire c1, c2;
@@ -372,5 +374,8 @@ module ym3438(
 	
 	assign MOR = ch_pan[0] ? ch_out : 9'h100;
 	assign MOL = ch_pan[1] ? ch_out : 9'h100;
+	
+	assign d_c1 = c1;
+	assign d_c2 = c2;
 	
 endmodule

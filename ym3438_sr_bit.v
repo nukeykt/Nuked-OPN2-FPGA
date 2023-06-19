@@ -81,9 +81,9 @@ module ym3438_cnt_bit #(parameter DATA_WIDTH = 1)
 		.data_out(data_out)
 		);
 	
-	assign sum = reset ? {DATA_WIDTH{1'h0}} : data_out + c_in;
+	assign sum = data_out + c_in;
 	assign val = data_out;
-	assign data_in = sum[DATA_WIDTH-1:0];
+	assign data_in = reset ? {DATA_WIDTH{1'h0}} : sum[DATA_WIDTH-1:0];
 	assign c_out = sum[DATA_WIDTH];
 	
 endmodule
@@ -251,9 +251,11 @@ module ym3438_cnt_bit_load #(parameter DATA_WIDTH = 1)
 		.data_out(data_out)
 		);
 	
-	assign sum = reset ? {DATA_WIDTH{1'h0}} : (load ? load_val : data_out) + c_in;
+	wire [DATA_WIDTH-1:0] base_val = load ? load_val : data_out;
+	
+	assign sum = base_val + c_in;
+	assign data_in = reset ? {DATA_WIDTH{1'h0}} : sum[DATA_WIDTH-1:0];
 	assign val = data_out;
-	assign data_in = sum[DATA_WIDTH-1:0];
 	assign c_out = sum[DATA_WIDTH];
 	
 endmodule

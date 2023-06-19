@@ -181,7 +181,7 @@ module ym3438_io
 	ym3438_slatch timer_a_status_sl
 		(
 		.MCLK(MCLK),
-		.en(c2),
+		.en(~read_en),
 		.inp(timer_a),
 		.val(),
 		.nval(timer_a_status_sl_out)
@@ -192,14 +192,14 @@ module ym3438_io
 	ym3438_slatch timer_b_status_sl
 		(
 		.MCLK(MCLK),
-		.en(c2),
+		.en(~read_en),
 		.inp(timer_b),
 		.val(),
 		.nval(timer_b_status_sl_out)
 		);
 	
-	bufif1(data_o[0], timer_b_status_sl_out, read_status);
-	bufif1(data_o[1], timer_a_status_sl_out, read_status);
+	bufif1(data_o[0], timer_a_status_sl_out, read_status);
+	bufif1(data_o[1], timer_b_status_sl_out, read_status);
 	bufif1(data_o[7], ~busy_state_o, read_status);
 	
 	assign irq = ~(timer_a_status_sl_out | timer_b_status_sl_out);

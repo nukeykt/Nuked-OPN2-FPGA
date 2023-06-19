@@ -160,25 +160,24 @@ module ym3438_eg
 	wire timer_bit_masked = timer_bit & ~mask_bit_sr_o;
 	
 	wire [11:0] timer_shift_sel;
+	wire [11:0] timer_shift_i;
 	
 	genvar i;
 	generate
 		for (i = 11; i >= 0; i = i - 1)
 		begin : l1
 			
-			wire timer_shift_i;
-			
 			if (i == 11)
-				assign timer_shift_i = timer_bit_masked;
+				assign timer_shift_i[i] = timer_bit_masked;
 			else
-				assign timer_shift_i = timer_shift_sel[i+1];
+				assign timer_shift_i[i] = timer_shift_sel[i+1];
 	
 			ym3438_sr_bit timer_shift_sr
 				(
 				.MCLK(MCLK),
 				.c1(c1),
 				.c2(c2),
-				.bit_in(timer_shift_i),
+				.bit_in(timer_shift_i[i]),
 				.sr_out(timer_shift_sel[i])
 				);
 		end
@@ -625,7 +624,7 @@ module ym3438_eg
 	
 	wire kon_event_n = ~(kon_toggle | (okon_sr_o & ssg_toggle_o));
 	
-	assign pg_reset_i = kon_toggle | ssg_pg_reset_o;
+	assign pg_reset_i = ~(kon_toggle | ssg_pg_reset_o);
 	
 	wire rate_att = ~(okon_sr1_o ? ssg_toggle : kon);
 	
@@ -641,7 +640,7 @@ module ym3438_eg
 		| set_release
 		| eg_mute
 		| set_release_koff;
-	assign state_sr_i[1] = nIC |
+	assign state_sr_i[1] = nIC
 		| (state_sr_o == 2'h1 & sl_reach & kon_event_n)
 		| (state_sr_o == 2'h2 & kon_event_n)
 		| set_release
@@ -726,7 +725,7 @@ module ym3438_eg
 	
 	wire [9:0] eg_level_comb;
 	
-	assign eg_level_comb = {10{eg_mute}} | ({10{eg_instantattack}} & eg_level2) | { ({7{eg_instantattack}} & tl_o1), 3'h0};
+	assign eg_level_comb = {10{eg_mute}} | ({10{eg_instantattack}} & eg_level2) | { ({7{csm_kon_o}} & tl_o1), 3'h0};
 	
 	wire [9:0] eg_level_comb_o;
 	
@@ -850,6 +849,7 @@ module ym3438_eg
 		);
 	
 	wire [10:0] eg_level_lfo = { 3'h0, eg_lfo_mux_l_o } + eg_level_out_test;
+	//wire [10:0] eg_level_lfo = eg_level_out_test;
 	wire [10:0] eg_level_lfo_l_o;
 	
 	ym3438_dlatch_1 #(.DATA_WIDTH(11)) eg_level_lfo_l
@@ -887,8 +887,10 @@ module ym3438_eg
 		);
 	
 	wire [10:0] eg_level_tl = eg_level_lfo_l_o[9:0] + { tl_add_l_o, 3'h0 } + 10'h8;
+	//wire [10:0] eg_level_tl = eg_level_lfo_l_o[9:0];
 	
 	wire eg_level_of = eg_level_tl[10] & eg_level_lfo_l_o[10];
+	//wire eg_level_of = 1'h1;
 	
 	wire [9:0] eg_level_tl_clamp = eg_level_of ? eg_level_tl[9:0] : 10'h0;
 	

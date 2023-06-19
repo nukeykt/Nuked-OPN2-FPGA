@@ -38,10 +38,10 @@ module ym3438_pg
 		.nval()
 		);
 	
-	wire block_sh0 = block[1:0] == 2'h0;
-	wire block_sh1 = block[1:0] == 2'h1;
-	wire block_sh2 = block[1:0] == 2'h2;
-	wire block_sh3 = block[1:0] == 2'h3;
+	wire block_sh0 = block_l_o[1:0] == 2'h0;
+	wire block_sh1 = block_l_o[1:0] == 2'h1;
+	wire block_sh2 = block_l_o[1:0] == 2'h2;
+	wire block_sh3 = block_l_o[1:0] == 2'h3;
 	
 	wire [12:0] freq1 = { fnum, 1'h0 };
 	
@@ -51,8 +51,8 @@ module ym3438_pg
 		| ({16{block_sh3}} & { freq1 });
 	
 	wire [16:0] freq3 = ~(
-		({17{~block[2]}} & { 4'h0, freq2[15:3] })
-		| ({17{block[2]}} & { freq2, 1'h0 })
+		({17{~block_l_o[2]}} & { 4'h0, freq2[15:3] })
+		| ({17{block_l_o[2]}} & { freq2, 1'h0 })
 		);
 	
 	wire [16:0] freq_l_o;
@@ -211,9 +211,9 @@ module ym3438_pg
 		);
 	
 	wire [17:0] freq_multi_add2 = ~(
-		({18{multi_sel_1_l_o}} & { 1'h0, freq_l2_o })
+		({18{multi_sel_3_l_o}} & { 1'h0, freq_l2_o })
 		| ({18{multi_sel_2_l_o}} & { freq_l2_o, 1'h0 })
-		| ({18{multi_sel_3_l_o}} & { freq_l2_o[15:1], 2'h0 })
+		| ({18{multi_sel_1_l_o}} & { freq_l2_o[16:0], 2'h0 })
 		);
 	
 	wire [19:0] freq_multi_add1_l_o;
@@ -244,7 +244,7 @@ module ym3438_pg
 		(
 		.MCLK(MCLK),
 		.c2(c2),
-		.inp(~(multi_sel_6_l_o | multi_sel_7_l_o)),
+		.inp(~(multi_sel_6_l_o | multi_sel_8_l_o)),
 		.val(),
 		.nval(multi_c_in)
 		);

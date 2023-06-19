@@ -581,7 +581,7 @@ module ym3438_reg_ctrl
 		.data(data[7:0]),
 		.reg_wr(reg_24_wr),
 		.rst(nIC),
-		.data_o(reg_timer_a_o[7:0])
+		.data_o(reg_timer_a_o[9:2])
 		);
 		
 	wire reg_25_wr;
@@ -606,7 +606,7 @@ module ym3438_reg_ctrl
 		.data(data[1:0]),
 		.reg_wr(reg_25_wr),
 		.rst(nIC),
-		.data_o(reg_timer_a_o[9:8])
+		.data_o(reg_timer_a_o[1:0])
 		);
 	
 	wire [7:0] reg_timer_b_o;
@@ -955,7 +955,7 @@ module ym3438_reg_ctrl
 		.MCLK(MCLK),
 		.c1(c1),
 		.c2(c2),
-		.bit_in(~((timer_a_status_sr_o & timer_a_status_reset) | timer_a_status_set)),
+		.bit_in(~((timer_a_status_sr_o & ~timer_a_status_reset) | timer_a_status_set)),
 		.sr_out(timer_a_status_sr_o2)
 		);
 
@@ -1057,7 +1057,7 @@ module ym3438_reg_ctrl
 		.MCLK(MCLK),
 		.c1(c1),
 		.c2(c2),
-		.bit_in(~((timer_b_status_sr_o & timer_b_status_reset) | timer_b_status_set)),
+		.bit_in(~((timer_b_status_sr_o & ~timer_b_status_reset) | timer_b_status_set)),
 		.sr_out(timer_b_status_sr_o2)
 		);
 	
