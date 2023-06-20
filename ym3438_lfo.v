@@ -248,6 +248,17 @@ module ym3438_lfo
 		.nval(lfo_pm_sign_l2_o)
 		);
 	
+	wire lfo_pm_sign_l3_o;
+	
+	ym3438_dlatch_2 lfo_pm_sign_l3
+		(
+		.MCLK(MCLK),
+		.c2(c2),
+		.inp(lfo_pm_sign_l_o),
+		.val(lfo_pm_sign_l3_o),
+		.nval()
+		);
+	
 	wire [10:0] fnum_sr_o;
 	
 	ym3438_sr_bit_array #(.DATA_WIDTH(11)) fnum_sr
@@ -259,7 +270,7 @@ module ym3438_lfo
 		.data_out(fnum_sr_o)
 		);
 	
-	wire [11:0] fnum_lfo_add = {fnum_sr_o, 1'h0} + { {4 {lfo_pm_sign_l2_o}}, lfo_pm_sum_o};
+	wire [11:0] fnum_lfo_add = {fnum_sr_o, 1'h0} + { {4 {lfo_pm_sign_l2_o}}, lfo_pm_sum_o} + lfo_pm_sign_l3_o;
 	
 	ym3438_dlatch_1 #(.DATA_WIDTH(12)) fnum_lfo_l
 		(
