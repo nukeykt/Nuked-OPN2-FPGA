@@ -63,6 +63,8 @@ module mdinterface
 	
 	wire [8:0] mol, mor;
 	
+	wire [9:0] mol_2612, mor_2612;
+	
 	ym3438 fm
 		(
 		.MCLK(MCLK),
@@ -82,7 +84,9 @@ module mdinterface
 		.MOL(mol),
 		.MOR(mor),
 		.d_c1(D_C1),
-		.d_c2(D_C2)
+		.d_c2(D_C2),
+		.MOL_2612(mol_2612),
+		.MOR_2612(mor_2612)
 		);
 	
 	//assign AUDIO_L = mol[8];
@@ -90,6 +94,7 @@ module mdinterface
 	
 	assign D_PHI = VCLK;
 	
+	/*
 	delta_sigma ds_l
 		(
 		.VCLK(VCLK),
@@ -103,6 +108,21 @@ module mdinterface
 		.pcm(mor),
 		.audio_o(AUDIO_R)
 		);
+	*/
+	
+	delta_sigma_2612 ds_l
+		(
+		.VCLK(VCLK),
+		.pcm(mol_2612),
+		.audio_o(AUDIO_L)
+		);
+	
+	delta_sigma_2612 ds_r
+		(
+		.VCLK(VCLK),
+		.pcm(mor_2612),
+		.audio_o(AUDIO_R)
+		);
 	
 endmodule
 
@@ -112,16 +132,44 @@ module delta_sigma(
 	output audio_o
 	);
 	
-	wire [9:0] data_in = pcm - 9'h100;
+	wire [15:0] data_in = pcm - 16'h100;
 	
-	reg [9:0] data;
+	reg [15:0] data;
 	
-	wire data_msb = data[9];
+	wire data_msb = data[15];
 	
-	wire [9:0] adc = data_msb ? 10'hff : 10'h300;
+	wire [15:0] adc = data_msb ? 127 : -128;
 	
-	wire [9:0] delta = data_in - adc;
-	wire [9:0] sigma = delta + data;
+	wire [15:0] delta = data_in - adc;
+	wire [15:0] sigma = delta + data;
+	
+	assign audio_o = data_msb;
+	
+	always @(posedge VCLK)
+	begin
+		data <= sigma;
+	end
+
+endmodule
+
+module delta_sigma_2612(
+	input VCLK,
+	input [9:0] pcm,
+	output audio_o
+	);
+	
+	wire [9:0] pcm2 = pcm;
+	
+	wire [15:0] data_in = { {6{pcm2[9]}}, pcm2 };
+	
+	reg [15:0] data;
+	
+	wire data_msb = data[15];
+	
+	wire [15:0] adc = data_msb ? 63 : -64;
+	
+	wire [15:0] delta = data_in - adc;
+	wire [15:0] sigma = delta + data;
 	
 	assign audio_o = data_msb;
 	
