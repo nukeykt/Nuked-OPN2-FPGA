@@ -617,7 +617,7 @@ module ym3438_eg
 	assign ssg_toggle = ssg_enable & eg_level_sr_o1[9] & ssg_repeat;
 	
 	assign ssg_inv_i = ssg_enable & okon_sr1_o
-		& ((eg_level_sr_o1[9] & ssg_type3) | ((eg_level_sr_o1[9] ^ ssg_inv_o) & ssg_type2));
+		& ((eg_level_sr_o1[9] & ssg_type3) | ((eg_level_sr_o1[9] & ssg_type2) ^ ssg_inv_o));
 	
 	wire kon_toggle = kon_sr_o & ~okon_sr_o;
 	wire kon_toggle_off = ~kon_sr_o & okon_sr_o;
