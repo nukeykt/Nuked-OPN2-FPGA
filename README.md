@@ -2,6 +2,9 @@
 
 YM3438 verilog
 
+## Audio samples
+https://drive.google.com/drive/folders/1RtqB4Rn1jMeVNzONG2wVgWdD4ZHzARxy?usp=sharing
+
 ## Testbench
 ![image](imgstore/testbench.jpg)
 
